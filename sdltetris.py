@@ -66,23 +66,6 @@ class TetrisShape :
             self.v = v
         else:
             self.v = [Vectoi2i(0,0),Vectoi2i(0,0),Vectoi2i(0,0),Vectoi2i(0,0)]
-        # match ityp:
-        #     case 1:
-        #         self.v = [Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(-1,0),Vectoi2i(-1,1)]
-        #     case 2:
-        #         self.v = [Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(1,0),Vectoi2i(1,1)]
-        #     case 3:
-        #         self.v = [Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(0,1),Vectoi2i(0,2)]
-        #     case 4:
-        #         self.v = [Vectoi2i(-1,0),Vectoi2i(0,0),Vectoi2i(1,0),Vectoi2i(0,1)]
-        #     case 5:
-        #         self.v = [Vectoi2i(0,0),Vectoi2i(1,0),Vectoi2i(0,1),Vectoi2i(1,1)]
-        #     case 6:
-        #         self.v = [Vectoi2i(-1,-1),Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(0,1)]
-        #     case 7:
-        #         self.v = [Vectoi2i(1,-1),Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(0,1)]
-        #     case _:
-        #         self.v = [Vectoi2i(0,0),Vectoi2i(0,0),Vectoi2i(0,0),Vectoi2i(0,0)]
 
     def rotate_left(self):
         if self.type != 5:
@@ -569,10 +552,10 @@ def run1():
     sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_BOLD|TTF_STYLE_ITALIC)
 
     mname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         "resources", "Tetris.ogg")
+                         "resources", "Tetris.wav")
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 1024)
     tetris_music=Mix_LoadMUS(str.encode(mname))
-    Mix_VolumeMusic(0)
+    Mix_VolumeMusic(20)
     Mix_PlayMusic(tetris_music,-1)
 
     cname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -746,65 +729,6 @@ def run1():
     sdl2.sdlttf.TTF_Quit()
     Mix_CloseAudio()
     sdl2.SDL_Quit()
-
-    
-def run():
-
-    #sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO)
-
-    sdl2.ext.init()
-
-    # window = sdl2.SDL_CreateWindow(b"SDL Tetris",
-    #                                 sdl2.SDL_WINDOWPOS_CENTERED,
-    #                                 sdl2.SDL_WINDOWPOS_CENTERED,
-    #                                 WIN_WIDTH, WIN_HEIGHT, sdl2.SDL_WINDOW_SHOWN)
-
-    window = sdl2.ext.Window("SDL Tetris", size=(WIN_WIDTH, WIN_HEIGHT))
-    window.show()
-
-    fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         "resources", "hello.bmp")
-
-    #image = sdl2.SDL_LoadBMP(fname.encode("utf-8"))
-    #windowsurface = sdl2.SDL_GetWindowSurface(window)
-    #sdl2.SDL_BlitSurface(image, None, windowsurface, None)
-    #sdl2.SDL_UpdateWindowSurface(window)
-    #sdl2.SDL_FreeSurface(image)
-    #renderer = sdl2.SDL_CreateRenderer(window,-1,sdl2.SDL_RENDERER_ACCELERATED)
-
-    renderer = sdl2.ext.Renderer(window)
-    renderer.color = sdl2.SDL_Color(0,0,0,255)
-    renderer.clear()
-
-    rects = []
-    rects.append((5,5,CELL_SIZE,CELL_SIZE))
-    rects.append((5,35,CELL_SIZE,CELL_SIZE))
-    renderer.fill(rects,color=(0,255,0,255))
-    renderer.present()
-
-    # sdl2.SDL_RenderClear(renderer);
-
-    # sdl2.SDL_SetRenderDrawColor(renderer,255, 0, 0, 255)
-    # sdl2.SDL_RenderDrawLine(renderer,10,10,200,200)
-
-    #rect = sdl2.SDL_Rect(5,5,25,25)
-    #sdl2.SDL_RenderFillRect(renderer,rect)
-
-    #sdl2.SDL_RenderPresent(renderer);
-
-    running = True
-    event = sdl2.SDL_Event()
-    while running:
-        for event in sdl2.ext.get_events():
-            if event.type == sdl2.SDL_QUIT:
-                running = False
-                break
-        sdl2.SDL_Delay(10)
-
-    sdl2.ext.quit()
-
-    #sdl2.SDL_DestroyWindow(window)
-    #sdl2.SDL_Quit()
 
     return 0
 
