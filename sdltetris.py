@@ -196,8 +196,6 @@ class Game:
         self.hightScores = [HighScore("--------",0) for i in range(10)]
         self.board = [0 for i in range(0,NB_COLUMNS*NB_ROWS)]
         self.score = 0
-        self.curTetromino = TetrisShape(0,0,0)
-        self.nextTetromino = TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,randint(1, 7))
         self.mode = GameMode.StandBy
         self.processEvent = self.processEventStandby
         self.fPlaySuccessSound = False
@@ -211,6 +209,10 @@ class Game:
         self.nbCompletedLines = 0
         self.horizontalMove = 0
         self.horizontalStartColumn = 0
+        self.tetroBag = [1,2,3,4,5,6,7,1,2,3,4,5,6,7]
+        self.idTetroBag = 14
+        self.curTetromino = TetrisShape(0,0,0)
+        self.nextTetromino = TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,self.tetrisRandomizer())
         self.tblChars = {
             sdl2.SDLK_a:'A',
             sdl2.SDLK_b:'B',
@@ -360,12 +362,29 @@ class Game:
                     y1 -= 1
                 return
 
+    def tetrisRandomizer(self)->int:
+        iSrc = 0
+        ityp = 0
+        if self.idTetroBag<14:
+            ityp = self.tetroBag[self.idTetroBag]
+            self.idTetroBag += 1
+        else:
+            # Shuttlt Bag
+            for i in range(14):
+                iSrc = randint(0, 13)
+                ityp = self.tetroBag[iSrc]
+                self.tetroBag[iSrc] = self.tetroBag[0]
+                self.tetroBag[0] = ityp
+            ityp = self.tetroBag[0]
+            self.idTetroBag = 1
+        return ityp
+
     def newTetrominos(self):
         self.curTetromino = self.nextTetromino
         self.curTetromino.x = 6*CELL_SIZE
         self.curTetromino.y = 0
         self.curTetromino.y = -self.curTetromino.max_y()*CELL_SIZE
-        self.nextTetromino =  TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,randint(1, 7))
+        self.nextTetromino =  TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,self.tetrisRandomizer())
 
     def compute_score(self, nb_lines: int) -> int:
         if nb_lines==1:
@@ -801,7 +820,7 @@ def run():
                                 if game.velocityH!=0:
                                     if (nbTicks-startTimeH)>10:
                                         backupX = game.curTetromino.x
-                                        game.curTetromino += game.velocityH
+                                        game.curTetromino.x += game.velocityH
 
                                         if game.velocityH<0:
                                             if game.curTetromino.isOutLeftLimit():
