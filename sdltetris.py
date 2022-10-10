@@ -456,6 +456,10 @@ class Game:
             running = False
         elif event.type == sdl2.SDL_KEYDOWN:
             if event.key.keysym.sym == sdl2.SDLK_ESCAPE:
+                if len(self.player_name)==0:
+                    self.player_name = "XXXXXXXX"
+                self.setHightScoreName(self.player_name)
+                self.saveHightScore()
                 running = False
             elif event.key.keysym.sym == sdl2.SDLK_BACKSPACE:
                 if len(self.player_name)>0:
@@ -765,9 +769,9 @@ def run():
 
                 elif game.horizontalMove!=0 :
 
-                    if (nbTicks-startTimeH)>20:
+                    if (nbTicks-startTimeH)>15:
                         startTimeH = nbTicks
-                        for i in range(4):
+                        for i in range(3):
                             backupX = game.curTetromino.x
                             game.curTetromino.x += game.horizontalMove
 
@@ -800,7 +804,7 @@ def run():
                                     break
 
                 elif game.fDropTetromino :
-                    if (nbTicks-startTimeV)>10:
+                    if (nbTicks-startTimeV)>20:
                         startTimeV + nbTicks
                         for i in range(6):
                             # Move down for checking
