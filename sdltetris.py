@@ -83,65 +83,108 @@ class TetrisShape :
                 self.v[i].x = x
                 self.v[i].y = y
 
-    def is_in_board(self)->bool:
-        for i in range(0,4):
-            x = self.v[i].x + self.x
-            y = self.v[i].y + self.y
-            if (x < 0) or (x >= NB_COLUMNS) or (y >= NB_ROWS):
-                return False
-        return True
-
-    def hit_ground(self, board)->bool:
-        for i in range(0,4):
-            y = self.v[i].y + self.y
-            if y>=0:
-                x = self.v[i].x + self.x
-                if board[x+y*NB_COLUMNS]!=0:
-                    return True
-
-        return False
-
     def max_x(self)->int:
-        maxi = self.v[0].x + self.x
+        maxi = self.v[0].x
         for i in range(1,4):
-            x = self.v[i].x + self.x
+            x = self.v[i].x
             if x>maxi:
                 maxi = x
         return maxi
 
     def min_x(self)->int:
-        min = self.v[0].x + self.x
+        min = self.v[0].x
         for i in range(1,4):
-            x = self.v[i].x + self.x
+            x = self.v[i].x
             if x<min:
                 min = x
         return min
 
     def max_y(self)->int:
-        max = self.v[0].y + self.y
+        max = self.v[0].y
         for i in range(1,4):
-            y = self.v[i].y + self.y
-            if y<max:
+            y = self.v[i].y
+            if y>max:
                 max = y
         return max
 
     def draw(self,renderer):
         # 
+        if self.type==0:
+            return
         col = TETRIS_COLORS[self.type]
         sdl2.SDL_SetRenderDrawColor(renderer, col.r, col.g, col.b, sdl2.SDL_ALPHA_OPAQUE)
         rects = []
         a = CELL_SIZE-2
         for v in self.v:
-            x = self.x + v.x
-            y = self.y + v.y
+            x = self.x + LEFT + v.x*CELL_SIZE + 1
+            y = self.y + TOP + v.y*CELL_SIZE + 1
             if y>=0:
-                rects.append(sdl2.SDL_Rect(LEFT+x*CELL_SIZE+1,TOP+y*CELL_SIZE+1,a,a))
+                rects.append(sdl2.SDL_Rect(x,y,a,a))
         cnt = len(rects)
         if cnt>0:
             rectsArray = ctypes.pointer((sdl2.SDL_Rect * cnt)())
             for i in range(cnt):
                 rectsArray.contents[i] = rects[i]
             sdl2.SDL_RenderFillRects(renderer,rectsArray.contents[0],cnt)
+
+    def isOutLeftLimit(self)->bool:
+        return (self.min_x()*CELL_SIZE + self.x)<0
+
+    def isOutRightLimit(self)->bool:
+        return (self.max_x()*CELL_SIZE +CELL_SIZE + self.x)>NB_COLUMNS*CELL_SIZE
+
+    def isOutBottomLimit(self)->bool:
+        return (self.max_y()*CELL_SIZE + CELL_SIZE + self.y)>NB_ROWS*CELL_SIZE
+
+    def hitGround(self, board)->bool:
+        for v in self.v:
+
+            # Top Left
+            x = v.x*CELL_SIZE + self.x + 1
+            y = v.y*CELL_SIZE + self.y + 1
+            ix = int(x/CELL_SIZE)
+            iy = int(y/CELL_SIZE)
+            if (ix>=0) and (ix<NB_COLUMNS) and (iy>=0) and (iy<NB_ROWS):
+                t = board[iy*NB_COLUMNS+ix]
+                if t!=0:
+                    return True
+
+            # Top Right
+            x = v.x*CELL_SIZE + CELL_SIZE + self.x - 1
+            y = v.y*CELL_SIZE + self.y + 1
+            ix = int(x/CELL_SIZE)
+            iy = int(y/CELL_SIZE)
+            if (ix>=0) and (ix<NB_COLUMNS) and (iy>=0) and (iy<NB_ROWS):
+                t = board[iy*NB_COLUMNS+ix]
+                if t!=0:
+                    return True
+
+            # Bottom Right
+            x = v.x*CELL_SIZE + CELL_SIZE + self.x - 1
+            y = v.y*CELL_SIZE + CELL_SIZE + self.y - 1
+            ix = int(x/CELL_SIZE)
+            iy = int(y/CELL_SIZE)
+            if (ix>=0) and (ix<NB_COLUMNS) and (iy>=0) and (iy<NB_ROWS):
+                t = board[iy*NB_COLUMNS+ix]
+                if t!=0:
+                    return True
+
+            # Bottom Left
+            x = v.x*CELL_SIZE + self.x + 1
+            y = v.y*CELL_SIZE + CELL_SIZE + self.y - 1
+            ix = int(x/CELL_SIZE)
+            iy = int(y/CELL_SIZE)
+            if (ix>=0) and (ix<NB_COLUMNS) and (iy>=0) and (iy<NB_ROWS):
+                t = board[iy*NB_COLUMNS+ix]
+                if t!=0:
+                    return True
+        
+
+        return False
+
+    def column(self)->int:
+        return int (self.x/CELL_SIZE)
+
 
 class HighScore:
     def __init__(self, name:str, score:int):
@@ -153,8 +196,8 @@ class Game:
         self.hightScores = [HighScore("--------",0) for i in range(10)]
         self.board = [0 for i in range(0,NB_COLUMNS*NB_ROWS)]
         self.score = 0
-        self.curTetromino = TetrisShape(5,4,0)
-        self.nextTetromino = TetrisShape(NB_COLUMNS + 3, int(NB_ROWS / 2),randint(1, 7))
+        self.curTetromino = TetrisShape(0,0,0)
+        self.nextTetromino = TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,randint(1, 7))
         self.mode = GameMode.StandBy
         self.processEvent = self.processEventStandby
         self.fPlaySuccessSound = False
@@ -165,6 +208,9 @@ class Game:
         self.idHightScore = -1
         self.player_name = ""
         self.fQuit = False
+        self.nbCompletedLines = 0
+        self.horizontalMove = 0
+        self.horizontalStartColumn = 0
         self.tblChars = {
             sdl2.SDLK_a:'A',
             sdl2.SDLK_b:'B',
@@ -265,23 +311,61 @@ class Game:
         return nbL
 
     def freeze_tetromino(self)->bool:
-        for i in range(0,4):
-            y = self.curTetromino.v[i].y + self.curTetromino.y
-            if y>=0:
-                x = self.curTetromino.v[i].x+self.curTetromino.x
+        ix = int((self.curTetromino.x+1)/CELL_SIZE)
+        iy = int((self.curTetromino.y+1)/CELL_SIZE)
+        for p in self.curTetromino.v:
+            x = p.x + ix
+            y = p.y + iy
+            if (x>=0) and (x<NB_COLUMNS) and (y>=0) and (y<NB_ROWS) :
                 self.board[x+y*NB_COLUMNS] = self.curTetromino.type
 
-        self.curTetromino = TetrisShape(5,0,self.nextTetromino.type)
-        self.curTetromino.y = -self.curTetromino.max_y()-1
-        self.nextTetromino = TetrisShape(NB_COLUMNS+3,int(NB_ROWS/2),randint(1, 7))
-
-        nb_lines = self.erase_completed_lines()
-        if nb_lines>0:
-            self.score += self.compute_score(nb_lines)
-            self.fPlaySuccessSound = True
+        self.nbCompletedLines = self.computeCompletedLines()
+        if self.nbCompletedLines>0:
+            self.score += self.compute_score(self.nbCompletedLines)
             return True
 
         return False
+
+    def computeCompletedLines(self)->int :
+        nbL = 0
+        for y in range(0,NB_ROWS):
+            #-- Check completed line
+            f_complete = True
+            for x in range(0,NB_COLUMNS):
+                if self.board[x + y * NB_COLUMNS] == 0 :
+                    f_complete = False
+                    break
+            
+            if f_complete :
+                nbL += 1
+        return nbL
+
+    def eraseFirstCompletedLine(self):
+        for y in range(0,NB_ROWS):
+            #-- Check completed line
+            f_complete = True
+            for x in range(0,NB_COLUMNS):
+                if self.board[x + y * NB_COLUMNS] == 0 :
+                    f_complete = False
+                    break
+            
+            if f_complete :
+                #-- Shift down the game board
+                y1 = y
+                while y1 > 0 :
+                    ySrcOffset = (y1 - 1) * NB_COLUMNS
+                    yDesOffset = y1 * NB_COLUMNS
+                    for x in range(0,NB_COLUMNS) :
+                        self.board[x + yDesOffset] = self.board[x + ySrcOffset]
+                    y1 -= 1
+                return
+
+    def newTetrominos(self):
+        self.curTetromino = self.nextTetromino
+        self.curTetromino.x = 6*CELL_SIZE
+        self.curTetromino.y = 0
+        self.curTetromino.y = -self.curTetromino.max_y()*CELL_SIZE
+        self.nextTetromino =  TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,randint(1, 7))
 
     def compute_score(self, nb_lines: int) -> int:
         if nb_lines==1:
@@ -324,9 +408,7 @@ class Game:
                     self.fPause = False
                     self.mode = GameMode.Play
                     self.processEvent = self.processEventPlay
-                    self.curTetromino = TetrisShape(5,0,self.nextTetromino.type)
-                    self.curTetromino.y = -2
-                    self.nextTetromino = TetrisShape(NB_COLUMNS+3,int(NB_ROWS/2),randint(1, 7))
+                    self.newTetrominos()
             elif event.key.keysym.sym == sdl2.SDLK_ESCAPE:
                 running = False
         return running
@@ -382,12 +464,36 @@ class Game:
             self.fQuit = True
             running = False
         elif event.type == sdl2.SDL_KEYDOWN:
-            if event.key.keysym.sym == sdl2.SDLK_LEFT:
+            if event.key.keysym.sym == sdl2.SDLK_LEFT and event.key.repeat==False:
                 self.velocityH = -1
-            elif event.key.keysym.sym == sdl2.SDLK_RIGHT:
+            elif event.key.keysym.sym == sdl2.SDLK_RIGHT and event.key.repeat==False:
                 self.velocityH = 1
             elif event.key.keysym.sym == sdl2.SDLK_UP:
-                self.curTetromino.rotate_left()
+
+                if self.curTetromino.type!=0:
+                    self.curTetromino.rotate_left()
+                    if self.curTetromino.hitGround(self.board):
+                        # Undo Rotate
+                        self.curTetromino.rotate_right()
+                    elif self.curTetromino.isOutRightLimit():
+                        backupX = self.curTetromino.x
+                        while True:
+                            self.curTetromino.x -= 1
+                            if self.curTetromino.isOutRightLimit():
+                                break
+                        if self.curTetromino.hitGround(self.board):
+                            self.curTetromino.x = backupX
+                            self.curTetromino.rotate_right()
+                    elif self.curTetromino.isOutLeftLimit():
+                        backupX = self.curTetromino.x
+                        while True:
+                            self.curTetromino.x += 1
+                            if self.curTetromino.isOutLeftLimit():
+                                break
+                        if self.curTetromino.hitGround(self.board):
+                            self.curTetromino.x = backupX
+                            self.curTetromino.rotate_right()
+
             elif event.key.keysym.sym == sdl2.SDLK_DOWN:
                 self.fFastDown = True
             elif event.key.keysym.sym == sdl2.SDLK_SPACE:
@@ -396,6 +502,7 @@ class Game:
                 self.fPause ^= True
             elif event.key.keysym.sym == sdl2.SDLK_ESCAPE:
                 running = False
+
         elif event.type == sdl2.SDL_KEYUP:
             if event.key.keysym.sym == sdl2.SDLK_LEFT or event.key.keysym.sym == sdl2.SDLK_RIGHT:
                 self.velocityH = 0
@@ -533,7 +640,7 @@ class Game:
         sdl2.SDL_DestroyTexture(texture)
 
 
-def run1():
+def run():
 
     # initialize
     sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO|sdl2.SDL_INIT_TIMER|sdl2.SDL_INIT_AUDIO)
@@ -598,11 +705,10 @@ def run1():
 
     game.loadHightScore()
 
-    curTime = sdl2.timer.SDL_GetTicks()
-    curTime1 = curTime
+    startTimeH = sdl2.timer.SDL_GetTicks()
+    startTimeV = startTimeH
+    startTimeR = startTimeH
     
-
-    #game.score = 500
 
     # run event loop
     running = True
@@ -627,54 +733,144 @@ def run1():
 
         #
         if game.mode is GameMode.Play:
-            fAlreadyMoveH = False
-            nbTicks = sdl2.timer.SDL_GetTicks()
-            elapsed = nbTicks - curTime
-            if elapsed>100:
-                curTime = nbTicks
-                game.curTetromino.x += game.velocityH
-                if not game.curTetromino.is_in_board():
-                    game.curTetromino.x -= game.velocityH
-                else:
-                    if game.curTetromino.hit_ground(game.board):
-                        game.curTetromino.x -= game.velocityH
-                fAlreadyMoveH = True
 
-            if game.fDropTetromino:
-                curTime1 = nbTicks
-                game.curTetromino.y += 1
-                if not game.curTetromino.is_in_board():
-                    game.curTetromino.y -= 1
-                    game.freeze_tetromino()
-                    game.fDropTetromino = False
+            if game.curTetromino!=0 and game.fPause==False :
+                nbTicks = sdl2.timer.SDL_GetTicks()
+
+                if game.nbCompletedLines>0:
+                    if (nbTicks-startTimeV)>250:
+                        startTimeV = nbTicks
+                        game.nbCompletedLines -= 1
+                        game.eraseFirstCompletedLine()
+                        Mix_PlayChannel(-1, succes_sound, 0)
+
+                elif game.horizontalMove!=0 :
+
+                    if (nbTicks-startTimeH)>20:
+                        startTimeH = nbTicks
+                        for i in range(4):
+                            backupX = game.curTetromino.x
+                            game.curTetromino.x += game.horizontalMove
+
+                            if game.horizontalMove<0 :
+                                if game.curTetromino.isOutLeftLimit():
+                                    game.curTetromino.x = backupX
+                                    game.horizontalMove = 0
+                                    break
+                                else:
+                                    if game.curTetromino.hitGround(game.board):
+                                        game.curTetromino.x = backupX
+                                        game.horizontalMove = 0
+                                        break
+                            elif game.horizontalMove>0 :
+                                if game.curTetromino.isOutRightLimit():
+                                    game.curTetromino.x = backupX
+                                    game.horizontalMove = 0
+                                    break
+                                else:
+                                    if game.curTetromino.hitGround(game.board):
+                                        game.curTetromino.x = backupX
+                                        game.horizontalMove = 0
+                                        break
+                            
+                            if game.horizontalMove != 0:
+                                if game.horizontalStartColumn!=game.curTetromino.column():
+                                    game.curTetromino.x = backupX
+                                    game.horizontalMove = 0
+                                    startTimeH = nbTicks
+                                    break
+
+                elif game.fDropTetromino :
+                    if (nbTicks-startTimeV)>10:
+                        startTimeV + nbTicks
+                        for i in range(6):
+                            # Move down for checking
+                            game.curTetromino.y += 1
+                            if game.curTetromino.hitGround(game.board):
+                                game.curTetromino.y -= 1
+                                game.freeze_tetromino()
+                                game.newTetrominos()
+                                game.fDropTetromino = False
+                            elif game.curTetromino.isOutBottomLimit():
+                                game.curTetromino.y -= 1
+                                game.freeze_tetromino()
+                                game.newTetrominos()
+                                game.fDropTetromino = False
+
+                            if game.fDropTetromino :
+                                if game.velocityH!=0:
+                                    if (nbTicks-startTimeH)>10:
+                                        backupX = game.curTetromino.x
+                                        game.curTetromino += game.velocityH
+
+                                        if game.velocityH<0:
+                                            if game.curTetromino.isOutLeftLimit():
+                                                game.curTetromino.x = backupX
+                                            else:
+                                                if game.curTetromino.hitGround(game.board):
+                                                    game.curTetromino.x = backupX
+                                                else:
+                                                    startTimeH = nbTicks
+                                                    game.horizontalMove = game.velocityH
+                                                    game.horizontalStartColumn = game.curTetromino.column()
+                                                    break
+                                        elif game.velocityH>0:
+                                            if game.curTetromino.isOutRightLimit():
+                                                game.curTetromino.x = backupX
+                                            else:
+                                                if game.curTetromino.hitGround(game.board):
+                                                    game.curTetromino.x = backupX
+                                                else:
+                                                    startTimeH = nbTicks
+                                                    game.horizontalMove = game.velocityH
+                                                    game.horizontalStartColumn = game.curTetromino.column()
+                                                    break
+
                 else:
-                    if game.curTetromino.hit_ground(game.board):
-                        game.curTetromino.y -= 1
-                        game.freeze_tetromino()
-                        game.fDropTetromino = False
-            else:
-                if game.fFastDown:
-                    limit = 100
-                else:
-                    limit = 600
-                elapsed = nbTicks - curTime1
-                if elapsed>limit and game.fPause==False:
-                    curTime1 = nbTicks
-                    if not fAlreadyMoveH:
-                        if not game.curTetromino.is_in_board():
-                            game.curTetromino.x -= game.velocityH
-                        else:
-                            if game.curTetromino.hit_ground(game.board):
-                                game.curTetromino.x -= game.velocityH
-                    game.curTetromino.y += 1
-                    game.nextTetromino.rotate_right()
-                    if not game.curTetromino.is_in_board():
-                        game.curTetromino.y -= 1
-                        game.freeze_tetromino()
-                    else:
-                        if game.curTetromino.hit_ground(game.board):
-                            game.curTetromino.y -= 1
-                            game.freeze_tetromino()
+                    limitElapse = 25
+                    if game.fFastDown:
+                        limitElapse = 10
+                    if (nbTicks-startTimeV)>limitElapse:
+                        startTimeV = nbTicks
+                        for i in range(3):
+                            # Move down
+                            game.curTetromino.y += 1
+                            fMove = True
+                            if game.curTetromino.hitGround(game.board):
+                                game.curTetromino.y -= 1
+                                game.freeze_tetromino()
+                                game.newTetrominos()
+                                fMove = False
+                            elif game.curTetromino.isOutBottomLimit():
+                                game.curTetromino.y -= 1
+                                game.freeze_tetromino()
+                                game.newTetrominos()
+                                fMove = False
+
+                            if fMove:
+                                if game.velocityH!=0:
+                                    if (nbTicks-startTimeH)>15:
+                                        startTimeH = nbTicks
+                                        backupX = game.curTetromino.x
+                                        game.curTetromino.x += game.velocityH
+                                        if game.velocityH<0:
+                                            if game.curTetromino.isOutLeftLimit():
+                                                game.curTetromino.x = backupX
+                                            elif game.curTetromino.hitGround(game.board):
+                                                game.curTetromino.x = backupX
+                                            else:
+                                                game.horizontalMove = game.velocityH
+                                                game.horizontalStartColumn = game.curTetromino.column()
+                                                break
+                                        elif game.velocityH>0:
+                                            if game.curTetromino.isOutRightLimit():
+                                                game.curTetromino.x = backupX
+                                            elif game.curTetromino.hitGround(game.board):
+                                                game.curTetromino.x = backupX
+                                            else:
+                                                game.horizontalMove = game.velocityH
+                                                game.horizontalStartColumn = game.curTetromino.column()
+                                                break
 
             if game.is_over():
                 game.curTetromino.type = 0
@@ -688,6 +884,11 @@ def run1():
                 else:
                     game.mode = GameMode.GameOver
                     game.processEvent = game.processEventGameOver
+
+        nbTicks =  sdl2.timer.SDL_GetTicks()
+        if (nbTicks-startTimeR)>500:
+            startTimeR = nbTicks
+            game.nextTetromino.rotate_right()
 
 
         #
@@ -707,10 +908,6 @@ def run1():
             game.curTetromino.draw(renderer)
 
         game.nextTetromino.draw(renderer)
-
-        if game.fPlaySuccessSound:
-            Mix_PlayChannel(-1, succes_sound, 0)
-            game.fPlaySuccessSound = False
 
         # Draw Score Text
         game.drawScore(renderer,tt_font)
@@ -734,4 +931,4 @@ def run1():
 
 
 if __name__ == "__main__":
-    sys.exit(run1())
+    sys.exit(run())
