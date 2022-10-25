@@ -133,6 +133,16 @@ class TetrisShape :
     def isOutRightLimit(self)->bool:
         return (self.max_x()*CELL_SIZE +CELL_SIZE + self.x)>NB_COLUMNS*CELL_SIZE
 
+    def isOutLRLimit(self,veloH)->bool:
+        if veloH<0:
+            return self.isOutLeftLimit()
+        elif veloH>0:
+            return self.isOutRightLimit()
+        return True
+
+    def isAlwaysOutLimit(self)->bool:
+        return True
+
     def isOutBottomLimit(self)->bool:
         return (self.max_y()*CELL_SIZE + CELL_SIZE + self.y)>NB_ROWS*CELL_SIZE
 
@@ -197,13 +207,13 @@ class Game:
         self.board = [0 for i in range(0,NB_COLUMNS*NB_ROWS)]
         self.score = 0
         self.mode = GameMode.StandBy
-        self.processEvent = self.processEventStandby
         self.fPlaySuccessSound = False
         self.fDropTetromino = False
         self.fFastDown = False
         self.fPause = False
         self.velocityH = 0
         self.idHightScore = -1
+        self.iColorHighScore = 0
         self.player_name = ""
         self.fQuit = False
         self.nbCompletedLines = 0
@@ -213,6 +223,8 @@ class Game:
         self.idTetroBag = 14
         self.curTetromino = TetrisShape(0,0,0)
         self.nextTetromino = TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,self.tetrisRandomizer())
+        self.isOutLimit = self.curTetromino.isAlwaysOutLimit
+        self.processEvent = self.processEventStandby
         self.tblChars = {
             sdl2.SDLK_a:'A',
             sdl2.SDLK_b:'B',
@@ -489,8 +501,10 @@ class Game:
         elif event.type == sdl2.SDL_KEYDOWN:
             if event.key.keysym.sym == sdl2.SDLK_LEFT and event.key.repeat==False:
                 self.velocityH = -1
+                self.isOutLimit = self.curTetromino.isOutLeftLimit
             elif event.key.keysym.sym == sdl2.SDLK_RIGHT and event.key.repeat==False:
                 self.velocityH = 1
+                self.isOutLimit = self.curTetromino.isOutRightLimit
             elif event.key.keysym.sym == sdl2.SDLK_UP:
 
                 if self.curTetromino.type!=0:
@@ -502,7 +516,7 @@ class Game:
                         backupX = self.curTetromino.x
                         while True:
                             self.curTetromino.x -= 1
-                            if self.curTetromino.isOutRightLimit():
+                            if not self.curTetromino.isOutRightLimit():
                                 break
                         if self.curTetromino.hitGround(self.board):
                             self.curTetromino.x = backupX
@@ -511,7 +525,7 @@ class Game:
                         backupX = self.curTetromino.x
                         while True:
                             self.curTetromino.x += 1
-                            if self.curTetromino.isOutLeftLimit():
+                            if not self.curTetromino.isOutLeftLimit():
                                 break
                         if self.curTetromino.hitGround(self.board):
                             self.curTetromino.x = backupX
@@ -529,6 +543,7 @@ class Game:
         elif event.type == sdl2.SDL_KEYUP:
             if event.key.keysym.sym == sdl2.SDLK_LEFT or event.key.keysym.sym == sdl2.SDLK_RIGHT:
                 self.velocityH = 0
+                self.isOutLimit = self.curTetromino.isAlwaysOutLimit
             elif event.key.keysym.sym == sdl2.SDLK_DOWN:
                 self.fFastDown = False
         return running
@@ -556,6 +571,7 @@ class Game:
         x = LEFT
         y = (NB_ROWS+1)*CELL_SIZE
         textScore = 'SCORE : {:06d}'.format(self.score)
+        sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_ITALIC|TTF_STYLE_ITALIC|TTF_STYLE_BOLD)
         surf = TTF_RenderText_Blended(tt_font, str.encode(textScore), sdl2.SDL_Color(255, 255, 0,255))
         texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
         iW = ctypes.pointer(ctypes.c_int(0))
@@ -572,12 +588,13 @@ class Game:
         xCol0 = LEFT + CELL_SIZE
         xCol1 = LEFT + 7*CELL_SIZE
         title = "HIGHT SCORES"
-        surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 0, 0,255))
+        sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_NORMAL|TTF_STYLE_BOLD)
+        surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 255, 0,255))
         texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
         iW = ctypes.pointer(ctypes.c_long(0))
         iH = ctypes.pointer(ctypes.c_long(0))
         sdl2.SDL_QueryTexture(texture, None, None, iW, iH)
-        y = TOP + CELL_SIZE
+        y = TOP + 2*CELL_SIZE
         dst = sdl2.SDL_Rect(int((LEFT+(NB_COLUMNS*CELL_SIZE-(iW.contents.value)))/2), int(y),iW.contents.value,iH.contents.value)
         sdl2.SDL_RenderCopy(renderer, texture, None, dst)
         sdl2.SDL_FreeSurface(surf)
@@ -586,8 +603,15 @@ class Game:
         y += 3 * iH.contents.value
         for i in range(0,10):
             hs = self.hightScores[i]
+            if i==self.idHightScore:
+                if (self.iColorHighScore % 2)!=0:
+                    textColor = sdl2.SDL_Color(180, 180, 0,255)                
+                else:
+                    textColor = sdl2.SDL_Color(255, 255, 0,255)
+            else:
+                textColor = sdl2.SDL_Color(255, 255, 0,255)
             # Name
-            surf = TTF_RenderText_Blended(tt_font, str.encode(hs.name), sdl2.SDL_Color(255, 0, 0,255))
+            surf = TTF_RenderText_Blended(tt_font, str.encode(hs.name), textColor)
             texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
             iW = ctypes.pointer(ctypes.c_long(0))
             iH = ctypes.pointer(ctypes.c_long(0))
@@ -598,7 +622,7 @@ class Game:
             sdl2.SDL_DestroyTexture(texture)
             # Score
             scoreTxt = "{:06d}".format(hs.score)
-            surf = TTF_RenderText_Blended(tt_font, str.encode(scoreTxt), sdl2.SDL_Color(255, 255, 0,255))
+            surf = TTF_RenderText_Blended(tt_font, str.encode(scoreTxt), textColor)
             texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
             iW = ctypes.pointer(ctypes.c_long(0))
             iH = ctypes.pointer(ctypes.c_long(0))
@@ -608,7 +632,7 @@ class Game:
             sdl2.SDL_FreeSurface(surf)
             sdl2.SDL_DestroyTexture(texture)
             #--
-            y += iH.contents.value + 2
+            y += iH.contents.value + 6
 
     def drawStanBy(self,renderer:sdl2.SDL_Renderer,tt_font:sdl2.sdlttf.TTF_Font):
         #---------------------
@@ -678,7 +702,7 @@ def run():
     
     fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "resources", "sansation.ttf")
-    tt_font = sdl2.sdlttf.TTF_OpenFont(str.encode(fname), 18)
+    tt_font = sdl2.sdlttf.TTF_OpenFont(str.encode(fname), 17)
     sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_BOLD|TTF_STYLE_ITALIC)
 
     mname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -775,27 +799,16 @@ def run():
                             backupX = game.curTetromino.x
                             game.curTetromino.x += game.horizontalMove
 
-                            if game.horizontalMove<0 :
-                                if game.curTetromino.isOutLeftLimit():
+                            if game.curTetromino.isOutLRLimit(game.horizontalMove):
+                                game.curTetromino.x = backupX
+                                game.horizontalMove = 0
+                                break
+                            else:
+                                if game.curTetromino.hitGround(game.board):
                                     game.curTetromino.x = backupX
                                     game.horizontalMove = 0
                                     break
-                                else:
-                                    if game.curTetromino.hitGround(game.board):
-                                        game.curTetromino.x = backupX
-                                        game.horizontalMove = 0
-                                        break
-                            elif game.horizontalMove>0 :
-                                if game.curTetromino.isOutRightLimit():
-                                    game.curTetromino.x = backupX
-                                    game.horizontalMove = 0
-                                    break
-                                else:
-                                    if game.curTetromino.hitGround(game.board):
-                                        game.curTetromino.x = backupX
-                                        game.horizontalMove = 0
-                                        break
-                            
+
                             if game.horizontalMove != 0:
                                 if game.horizontalStartColumn!=game.curTetromino.column():
                                     game.curTetromino.x = backupX
@@ -826,28 +839,16 @@ def run():
                                         backupX = game.curTetromino.x
                                         game.curTetromino.x += game.velocityH
 
-                                        if game.velocityH<0:
-                                            if game.curTetromino.isOutLeftLimit():
+                                        if game.isOutLimit():
+                                            game.curTetromino.x = backupX
+                                        else:
+                                            if game.curTetromino.hitGround(game.board):
                                                 game.curTetromino.x = backupX
                                             else:
-                                                if game.curTetromino.hitGround(game.board):
-                                                    game.curTetromino.x = backupX
-                                                else:
-                                                    startTimeH = nbTicks
-                                                    game.horizontalMove = game.velocityH
-                                                    game.horizontalStartColumn = game.curTetromino.column()
-                                                    break
-                                        elif game.velocityH>0:
-                                            if game.curTetromino.isOutRightLimit():
-                                                game.curTetromino.x = backupX
-                                            else:
-                                                if game.curTetromino.hitGround(game.board):
-                                                    game.curTetromino.x = backupX
-                                                else:
-                                                    startTimeH = nbTicks
-                                                    game.horizontalMove = game.velocityH
-                                                    game.horizontalStartColumn = game.curTetromino.column()
-                                                    break
+                                                startTimeH = nbTicks
+                                                game.horizontalMove = game.velocityH
+                                                game.horizontalStartColumn = game.curTetromino.column()
+                                                break
 
                 else:
                     limitElapse = 25
@@ -873,27 +874,18 @@ def run():
                             if fMove:
                                 if game.velocityH!=0:
                                     if (nbTicks-startTimeH)>15:
-                                        startTimeH = nbTicks
                                         backupX = game.curTetromino.x
                                         game.curTetromino.x += game.velocityH
-                                        if game.velocityH<0:
-                                            if game.curTetromino.isOutLeftLimit():
-                                                game.curTetromino.x = backupX
-                                            elif game.curTetromino.hitGround(game.board):
-                                                game.curTetromino.x = backupX
-                                            else:
-                                                game.horizontalMove = game.velocityH
-                                                game.horizontalStartColumn = game.curTetromino.column()
-                                                break
-                                        elif game.velocityH>0:
-                                            if game.curTetromino.isOutRightLimit():
-                                                game.curTetromino.x = backupX
-                                            elif game.curTetromino.hitGround(game.board):
-                                                game.curTetromino.x = backupX
-                                            else:
-                                                game.horizontalMove = game.velocityH
-                                                game.horizontalStartColumn = game.curTetromino.column()
-                                                break
+
+                                        if game.isOutLimit():
+                                            game.curTetromino.x = backupX
+                                        elif game.curTetromino.hitGround(game.board):
+                                            game.curTetromino.x = backupX
+                                        else:
+                                            startTimeH = nbTicks
+                                            game.horizontalMove = game.velocityH
+                                            game.horizontalStartColumn = game.curTetromino.column()
+                                            break
 
             if game.is_over():
                 game.curTetromino.type = 0
@@ -921,6 +913,10 @@ def run():
         game.draw(renderer)
 
         if game.mode is GameMode.HightScore:
+            nbTicks = sdl2.timer.SDL_GetTicks()
+            if (nbTicks-startTimeV)>400:
+                startTimeV = nbTicks            
+                game.iColorHighScore += 1
             game.drawHighScores(renderer, tt_font)
         elif game.mode is GameMode.GameOver:
             game.drawGameOver(renderer, tt_font)
