@@ -1,6 +1,6 @@
-"""     Simple Tetris using sdl2.   """
-"""             2022                """
-"""      Raymond NGUYEN THANH       """
+""" Simple Tetris using sdl2 """
+#             2022
+#      Raymond NGUYEN THANH
 import os
 from os import path
 from random import randint
