@@ -777,9 +777,9 @@ def run():
                 break
             if not running:
                 game.curTetromino.type = 0
-                id = game.isHightScore()
-                if id>=0:
-                    game.insertHightScore(id,game.player_name,game.score)
+                idScore = game.isHightScore()
+                if idScore>=0:
+                    game.insertHightScore(idScore,game.player_name,game.score)
                     game.init_board()
                     game.score = 0
                     game.mode = GameMode.HightScore
