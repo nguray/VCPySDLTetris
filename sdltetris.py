@@ -96,22 +96,25 @@ class TetrisShape :
         return maxi
 
     def min_x(self)->int:
-        min = self.v[0].x
+        """ Minimum x coordinate of Tetromino"""
+        min_val = self.v[0].x
         for i in range(1,4):
             x = self.v[i].x
-            if x<min:
-                min = x
-        return min
+            if x<min_val:
+                min_val = x
+        return min_val
 
     def max_y(self)->int:
-        max = self.v[0].y
+        """ Maximum y coordinate of Tetromino"""
+        max_val = self.v[0].y
         for i in range(1,4):
             y = self.v[i].y
-            if y>max:
-                max = y
-        return max
+            if y>max_val:
+                max_val = y
+        return max_val
 
-    def draw(self,renderer):
+    def draw(self,renderer: sdl2.SDL_Renderer):
+        """ Draw Tetromino """
         # 
         if self.type==0:
             return
@@ -150,7 +153,7 @@ class TetrisShape :
     def isOutBottomLimit(self)->bool:
         return (self.max_y()*CELL_SIZE + CELL_SIZE + self.y)>NB_ROWS*CELL_SIZE
 
-    def hitGround(self, board)->bool:
+    def hitGround(self, board: list[int])->bool:
         for v in self.v:
 
             # Top Left
@@ -403,6 +406,7 @@ class Game:
         self.nextTetromino =  TetrisShape((NB_COLUMNS + 3)*CELL_SIZE, int(NB_ROWS / 2)*CELL_SIZE,self.tetrisRandomizer())
 
     def compute_score(self, nb_lines: int) -> int:
+        """ Compute Tetris score """
         if nb_lines==1:
             return 40
         elif nb_lines==2:
@@ -417,7 +421,7 @@ class Game:
 
     
     def draw(self,renderer:sdl2.SDL_Renderer):
-        #
+        """ Draw game board """
         sdl2.SDL_SetRenderDrawColor(renderer, 20, 20, 100, sdl2.SDL_ALPHA_OPAQUE)
         sdl2.SDL_RenderFillRect(renderer,sdl2.SDL_Rect(LEFT,TOP,NB_COLUMNS*CELL_SIZE,NB_ROWS*CELL_SIZE))
 
@@ -588,7 +592,7 @@ class Game:
 
 
     def drawHighScores(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
-        #---------------------
+        """ Display highscores screen """
         xCol0 = LEFT + CELL_SIZE
         xCol1 = LEFT + 7*CELL_SIZE
         title = "HIGHT SCORES"
@@ -639,7 +643,7 @@ class Game:
             y += iH.contents.value + 6
 
     def drawStanBy(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
-        #---------------------
+        """ Display StandBy screen """
         title = "TETRIS in SDL2"
         surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 255, 0,255))
         texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
@@ -665,7 +669,7 @@ class Game:
         sdl2.SDL_DestroyTexture(texture)
 
     def drawGameOver(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
-        #---------------------
+        """" Display game over screen """
         title = "Game Over"
         surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 255, 0,255))
         texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
