@@ -898,9 +898,9 @@ def run():
             if game.is_over():
                 game.curTetromino.type = 0
                 game.init_board()
-                id = game.isHightScore()
-                if id>=0:
-                    game.insertHightScore(id,game.player_name,game.score)
+                idScore = game.isHightScore()
+                if idScore>=0:
+                    game.insertHightScore(idScore,game.player_name,game.score)
                     game.score = 0
                     game.mode = GameMode.HightScore
                     game.processEvent = game.processEventHightScores
