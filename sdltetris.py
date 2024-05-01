@@ -41,24 +41,26 @@ TETRIS_COLORS = [
     sdl2.SDL_Color(0xDA,0xAA,0x00,0xFF)
 ]
 
-class Vectoi2i:
+class Vector2i:
+    """Class representing 2d vector """
     def __init__(self, x:int, y:int):
         self.x = int(x)
         self.y = int(y)
 
 class TetrisShape :
+    """Class representing a tetromino"""
     def __init__(self, x:int =0, y:int =0, itype:int =0):
         self.x = x
         self.y = y 
         self.type = itype
         self.shapes = {
-            1:[Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(-1,0),Vectoi2i(-1,1)],
-            2:[Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(1,0),Vectoi2i(1,1)],
-            3:[Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(0,1),Vectoi2i(0,2)],
-            4:[Vectoi2i(-1,0),Vectoi2i(0,0),Vectoi2i(1,0),Vectoi2i(0,1)],
-            5:[Vectoi2i(0,0),Vectoi2i(1,0),Vectoi2i(0,1),Vectoi2i(1,1)],
-            6:[Vectoi2i(-1,-1),Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(0,1)],
-            7:[Vectoi2i(1,-1),Vectoi2i(0,-1),Vectoi2i(0,0),Vectoi2i(0,1)]
+            1:[Vector2i(0,-1),Vector2i(0,0),Vector2i(-1,0),Vector2i(-1,1)],
+            2:[Vector2i(0,-1),Vector2i(0,0),Vector2i(1,0),Vector2i(1,1)],
+            3:[Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1),Vector2i(0,2)],
+            4:[Vector2i(-1,0),Vector2i(0,0),Vector2i(1,0),Vector2i(0,1)],
+            5:[Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)],
+            6:[Vector2i(-1,-1),Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1)],
+            7:[Vector2i(1,-1),Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1)]
         }
         self.init_shape(itype)
 
@@ -67,7 +69,7 @@ class TetrisShape :
         if v!=None:
             self.v = v
         else:
-            self.v = [Vectoi2i(0,0),Vectoi2i(0,0),Vectoi2i(0,0),Vectoi2i(0,0)]
+            self.v = [Vector2i(0,0),Vector2i(0,0),Vector2i(0,0),Vector2i(0,0)]
 
     def rotate_left(self):
         if self.type != 5:
