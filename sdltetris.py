@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 """ Simple Tetris using sdl2 """
 #             2022
 #      Raymond NGUYEN THANH
