@@ -566,12 +566,12 @@ class Game:
             # self.hightScores[id].name = name
             # self.hightScores[id].score = score 
 
-    def drawScore(self,renderer:sdl2.SDL_Renderer,tt_font:sdl2.sdlttf.TTF_Font):
+    def drawScore(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
         #---------------------
         x = LEFT
         y = (NB_ROWS+1)*CELL_SIZE
         textScore = 'SCORE : {:06d}'.format(self.score)
-        sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_ITALIC|TTF_STYLE_ITALIC|TTF_STYLE_BOLD)
+        TTF_SetFontStyle(tt_font, TTF_STYLE_ITALIC|TTF_STYLE_ITALIC|TTF_STYLE_BOLD)
         surf = TTF_RenderText_Blended(tt_font, str.encode(textScore), sdl2.SDL_Color(255, 255, 0,255))
         texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
         iW = ctypes.pointer(ctypes.c_int(0))
@@ -583,12 +583,12 @@ class Game:
         sdl2.SDL_DestroyTexture(texture)
 
 
-    def drawHighScores(self,renderer:sdl2.SDL_Renderer,tt_font:sdl2.sdlttf.TTF_Font):
+    def drawHighScores(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
         #---------------------
         xCol0 = LEFT + CELL_SIZE
         xCol1 = LEFT + 7*CELL_SIZE
         title = "HIGHT SCORES"
-        sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_NORMAL|TTF_STYLE_BOLD)
+        TTF_SetFontStyle(tt_font, TTF_STYLE_NORMAL|TTF_STYLE_BOLD)
         surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 255, 0,255))
         texture = sdl2.SDL_CreateTextureFromSurface(renderer, surf)        
         iW = ctypes.pointer(ctypes.c_long(0))
@@ -634,7 +634,7 @@ class Game:
             #--
             y += iH.contents.value + 6
 
-    def drawStanBy(self,renderer:sdl2.SDL_Renderer,tt_font:sdl2.sdlttf.TTF_Font):
+    def drawStanBy(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
         #---------------------
         title = "TETRIS in SDL2"
         surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 255, 0,255))
@@ -660,7 +660,7 @@ class Game:
         sdl2.SDL_FreeSurface(surf)
         sdl2.SDL_DestroyTexture(texture)
 
-    def drawGameOver(self,renderer:sdl2.SDL_Renderer,tt_font:sdl2.sdlttf.TTF_Font):
+    def drawGameOver(self,renderer:sdl2.SDL_Renderer,tt_font:TTF_Font):
         #---------------------
         title = "Game Over"
         surf = TTF_RenderText_Blended(tt_font, str.encode(title), sdl2.SDL_Color(255, 255, 0,255))
@@ -692,7 +692,7 @@ def run():
     # initialize
     sdl2.SDL_Init(sdl2.SDL_INIT_VIDEO|sdl2.SDL_INIT_TIMER|sdl2.SDL_INIT_AUDIO)
 
-    sdl2.sdlttf.TTF_Init()
+    TTF_Init()
 
     # create window
     win = sdl2.SDL_CreateWindow(b"Tetris SDL",
@@ -702,8 +702,8 @@ def run():
     
     fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "resources", "sansation.ttf")
-    tt_font = sdl2.sdlttf.TTF_OpenFont(str.encode(fname), 17)
-    sdl2.sdlttf.TTF_SetFontStyle(tt_font, TTF_STYLE_BOLD|TTF_STYLE_ITALIC)
+    tt_font = TTF_OpenFont(str.encode(fname), 17)
+    TTF_SetFontStyle(tt_font, TTF_STYLE_BOLD|TTF_STYLE_ITALIC)
 
     mname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          "resources", "Tetris.wav")
@@ -942,7 +942,7 @@ def run():
     sdl2.SDL_DestroyRenderer(renderer)
     sdl2.SDL_DestroyWindow(win)
     TTF_CloseFont(tt_font)
-    sdl2.sdlttf.TTF_Quit()
+    TTF_Quit()
     Mix_CloseAudio()
     sdl2.SDL_Quit()
 
