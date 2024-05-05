@@ -8,7 +8,7 @@
             "name": "Python : fichier actif",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "sdltetris.py",
             "console": "integratedTerminal",
             "justMyCode": true
         }

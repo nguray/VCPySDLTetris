@@ -14,6 +14,7 @@ from sdl2 import (pixels, render, events as sdlevents, surface, error,timer)
 from sdl2.sdlttf import *
 from sdl2.sdlmixer import *
 from enum import Enum, unique
+from dataclasses import dataclass
 
 WIN_WIDTH   = 480
 WIN_HEIGHT  = 560
@@ -41,11 +42,11 @@ TETRIS_COLORS = [
     sdl2.SDL_Color(0xDA,0xAA,0x00,0xFF)
 ]
 
+@dataclass
 class Vector2i:
     """Class representing 2d vector """
-    def __init__(self, x:int, y:int):
-        self.x = int(x)
-        self.y = int(y)
+    x: int
+    y: int
 
 class TetrisShape :
     """Class representing a tetromino"""
@@ -73,19 +74,19 @@ class TetrisShape :
 
     def rotate_left(self):
         if self.type != 5:
-            for i in range(0,4):
-                x = self.v[i].y
-                y = -self.v[i].x
-                self.v[i].x = x
-                self.v[i].y = y
+            for v in self.v:
+                x = v.y
+                y = -v.x
+                v.x = x
+                v.y = y
 
     def rotate_right(self):
         if self.type != 5:
-            for i in range(0,4):
-                x = -self.v[i].y
-                y = self.v[i].x
-                self.v[i].x = x
-                self.v[i].y = y
+            for v in self.v:
+                x = -v.y
+                y = v.x
+                v.x = x
+                v.y = y
 
     def max_x(self)->int:
         maxi = self.v[0].x
