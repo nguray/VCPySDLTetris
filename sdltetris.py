@@ -89,30 +89,37 @@ class TetrisShape :
                 v.y = y
 
     def max_x(self)->int:
-        maxi = self.v[0].x
-        for i in range(1,4):
-            x = self.v[i].x
-            if x>maxi:
-                maxi = x
-        return maxi
+        """ Maximum x coordinate of Tetromino"""
+        vmax =  max(self.v, key=lambda p: p.x)
+        return vmax.x
+        # maxi = self.v[0].x
+        # for i in range(1,4):
+        #     x = self.v[i].x
+        #     if x>maxi:
+        #         maxi = x
+        # return maxi
 
     def min_x(self)->int:
         """ Minimum x coordinate of Tetromino"""
-        min_val = self.v[0].x
-        for i in range(1,4):
-            x = self.v[i].x
-            if x<min_val:
-                min_val = x
-        return min_val
+        vmin =  min(self.v, key=lambda p: p.x)
+        return vmin.x
+        # min_val = self.v[0].x
+        # for i in range(1,4):
+        #     x = self.v[i].x
+        #     if x<min_val:
+        #         min_val = x
+        # return min_val
 
     def max_y(self)->int:
         """ Maximum y coordinate of Tetromino"""
-        max_val = self.v[0].y
-        for i in range(1,4):
-            y = self.v[i].y
-            if y>max_val:
-                max_val = y
-        return max_val
+        vmax =  max(self.v, key=lambda p: p.y)
+        return vmax.y
+        # max_val = self.v[0].y
+        # for i in range(1,4):
+        #     y = self.v[i].y
+        #     if y>max_val:
+        #         max_val = y
+        # return max_val
 
     def draw(self,renderer: sdl2.SDL_Renderer):
         """ Draw Tetromino """
