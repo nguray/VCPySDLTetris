@@ -8,13 +8,13 @@ from os import path
 from random import randint
 import sys
 import ctypes
+from enum import Enum, unique
+from dataclasses import dataclass
 import sdl2
 import sdl2.ext
 from sdl2 import (pixels, render, events as sdlevents, surface, error,timer)
 from sdl2.sdlttf import *
 from sdl2.sdlmixer import *
-from enum import Enum, unique
-from dataclasses import dataclass
 
 WIN_WIDTH   = 480
 WIN_HEIGHT  = 560
