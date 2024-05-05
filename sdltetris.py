@@ -68,7 +68,7 @@ class TetrisShape :
     def init_shape(self,ityp:int):
         v = self.shapes.get(ityp)
         if v!=None:
-            self.v = v
+            self.v = list(v)
         else:
             self.v = [Vector2i(0,0),Vector2i(0,0),Vector2i(0,0),Vector2i(0,0)]
 
