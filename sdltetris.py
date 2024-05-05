@@ -834,7 +834,7 @@ def run():
 
                 elif game.fDropTetromino :
                     if (nbTicks-startTimeV)>20:
-                        startTimeV + nbTicks
+                        startTimeV = nbTicks
                         for i in range(6):
                             # Move down for checking
                             game.curTetromino.y += 1
