@@ -50,25 +50,27 @@ class Vector2i:
 
 class TetrisShape :
     """Class representing a tetromino"""
+    
+    shapes = {
+        1:[Vector2i(0,-1),Vector2i(0,0),Vector2i(-1,0),Vector2i(-1,1)],
+        2:[Vector2i(0,-1),Vector2i(0,0),Vector2i(1,0),Vector2i(1,1)],
+        3:[Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1),Vector2i(0,2)],
+        4:[Vector2i(-1,0),Vector2i(0,0),Vector2i(1,0),Vector2i(0,1)],
+        5:[Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)],
+        6:[Vector2i(-1,-1),Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1)],
+        7:[Vector2i(1,-1),Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1)]
+    }
+
     def __init__(self, x:int =0, y:int =0, itype:int =0):
         self.x = x
         self.y = y 
         self.type = itype
-        self.shapes = {
-            1:[Vector2i(0,-1),Vector2i(0,0),Vector2i(-1,0),Vector2i(-1,1)],
-            2:[Vector2i(0,-1),Vector2i(0,0),Vector2i(1,0),Vector2i(1,1)],
-            3:[Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1),Vector2i(0,2)],
-            4:[Vector2i(-1,0),Vector2i(0,0),Vector2i(1,0),Vector2i(0,1)],
-            5:[Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)],
-            6:[Vector2i(-1,-1),Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1)],
-            7:[Vector2i(1,-1),Vector2i(0,-1),Vector2i(0,0),Vector2i(0,1)]
-        }
         self.init_shape(itype)
 
     def init_shape(self,ityp:int):
-        v = self.shapes.get(ityp)
+        v = TetrisShape.shapes.get(ityp)
         if v!=None:
-            self.v = list(v)
+            self.v = [Vector2i(p.x,p.y) for p in v]
         else:
             self.v = [Vector2i(0,0),Vector2i(0,0),Vector2i(0,0),Vector2i(0,0)]
 
