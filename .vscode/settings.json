@@ -1,3 +1,5 @@
 {
-    "pylint.importStrategy": "fromEnvironment"
+    "python.analysis.completeFunctionParens": true,
+    "python.autoComplete.extraPaths": [],
+    "python.analysis.extraPaths": []
 }

@@ -398,7 +398,7 @@ class Game:
             ityp = self.tetroBag[self.idTetroBag]
             self.idTetroBag += 1
         else:
-            # Shuttlt Bag
+            # Shuttle Bag
             for i in range(14):
                 iSrc = randint(0, 13)
                 ityp = self.tetroBag[iSrc]
