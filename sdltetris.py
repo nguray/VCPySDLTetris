@@ -63,13 +63,13 @@ class TetrisShape :
 
     def __init__(self, x:int =0, y:int =0, itype:int =0):
         self.x = x
-        self.y = y 
+        self.y = y
         self.type = itype
         self.init_shape(itype)
 
     def init_shape(self,ityp:int):
         v = TetrisShape.shapes.get(ityp)
-        if v!=None:
+        if v is not None:
             self.v = [Vector2i(p.x,p.y) for p in v]
         else:
             self.v = [Vector2i(0,0),Vector2i(0,0),Vector2i(0,0),Vector2i(0,0)]
